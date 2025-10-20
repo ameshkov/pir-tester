@@ -11,8 +11,12 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/pir-tester/compare/v1.0.0...HEAD
+
+## [v1.0.0] - 2025-10-20
+
 ### Added
 
 - Initial release
 
-[unreleased]: https://github.com/ameshkov/pir-tester/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/ameshkov/pir-tester/releases/tag/v1.0.0
