@@ -1,4 +1,4 @@
-# pir-db-builder changelog
+# pir-tester changelog
 
 All notable changes to this project will be documented in this file.
 
