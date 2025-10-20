@@ -5,22 +5,6 @@ This is a command-line tool which purpose is to test a PIR service for Apple's
 
 [urlfilteringdoc]: https://developer.apple.com/documentation/networkextension/filtering-traffic-by-url
 
-## Implementation details
-
-The tool uses `PIRClient` that is provided by the `PIRServiceTesting` library
-from Apple's [pir-service-example][pir-service-example]. This library implements
-all the necessary operations:
-
-- `PIRClient.fetchTokens` for fetching the privacy pass tokens. It will
-  internally call `fetchTokenDirectory` and `fetchPublicKeyForUserToken` so you
-  don't need to do it yourself.
-- `PIRClient.fetchKeyStatus` for fetching the key status from the PIR service
-  for the specified usecase. It will save the configuration to `configCache`.
-- `PIRClient.rotateKey` for generating and uploading the evaluation key.
-- `PIRClient.request` for running the PIR query.
-
-[pir-service-example]: https://github.com/apple/pir-service-example
-
 ## Full lookup
 
 When launched with the following arguments, `PirTester` will do the following:
@@ -40,3 +24,22 @@ PirTester query \
     --user-token <user-token> \
     <keyword>
 ```
+
+## Multiple lookups
+
+When launched with the following arguments, `PirTester` will send multiple PIR
+queries one by one.
+
+```sh
+PirTester query \
+    --pir-server-url <pir-server-url> \
+    --privacy-pass-url <privacy-pass-url> \
+    --pir-usecase <pir-usecase> \
+    --user-token <user-token> \
+    --input <input-file>
+```
+
+Where `<input-file>` is a file containing one keyword per line.
+
+The tool will run the PIR query for each keyword and print the result to the
+standard output.

@@ -18,6 +18,8 @@ disabled_rules:
   - function_body_length
   - type_body_length
   - trailing_comma
+  - opening_brace
+  - closure_parameter_position
 
 opt_in_rules:
   - array_init
