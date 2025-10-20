@@ -73,7 +73,17 @@ let package = Package(
         .target(name: "Util", swiftSettings: swiftSettings),
         .testTarget(
             name: "PirTesterTests",
-            dependencies: ["PirTester"],
+            dependencies: [
+                "PirTester",
+                "PIRServiceTesting",
+                "PrivacyPass",
+                "Util",
+                .product(name: "HummingbirdTesting", package: "hummingbird"),
+                .product(
+                    name: "PrivateInformationRetrievalProtobuf",
+                    package: "swift-homomorphic-encryption"
+                ),
+            ],
             swiftSettings: swiftSettings
         ),
     ]
