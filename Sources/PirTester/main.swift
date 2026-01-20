@@ -137,7 +137,7 @@ func runQueries(
     // Using thread-safe container
     final class ResultContainer: @unchecked Sendable {
         var error: Error?
-        var results: [(String, KeywordValuePair.Value?)] = []
+        var results: [(String, String?)] = []
         let semaphore = DispatchSemaphore(value: 0)
     }
 
@@ -168,11 +168,13 @@ func runQueries(
                     allowKeyRotation: true
                 )
 
-                print("✓ PIR query completed successfully")
                 // Flatten double optional: queryResults.first returns Value??
                 let result = queryResults.first.flatMap { $0 }
-                container.results.append((keyword, result))
 
+                let valueStr = result.flatMap { String(bytes: $0, encoding: .utf8) } ?? "nil"
+                print("✓ PIR query completed successfully, value=\(valueStr)")
+
+                container.results.append((keyword, valueStr))
                 if index < keywords.count - 1 {
                     print("")
                 }
@@ -193,10 +195,7 @@ func runQueries(
     print("")
     for (keyword, result) in container.results {
         if let result = result {
-            let resultString =
-                String(data: Data(result), encoding: .utf8)
-                ?? "<\(result.count) bytes of binary response>"
-            print("Result for '\(keyword)': \(resultString)")
+            print("Result for '\(keyword)': \(result)")
         } else {
             print("Result for '\(keyword)': No value found")
         }
