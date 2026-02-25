@@ -29,6 +29,10 @@ let package = Package(
             url: "https://github.com/apple/swift-argument-parser",
             from: "1.5.0"
         ),
+        .package(
+            url: "https://github.com/apple/swift-nio-oblivious-http",
+            .upToNextMinor(from: "0.3.0")
+        ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -48,6 +52,14 @@ let package = Package(
             name: "PIRServiceTesting",
             dependencies: [
                 "PrivacyPass", "Util",
+                .product(
+                    name: "ObliviousHTTP",
+                    package: "swift-nio-oblivious-http"
+                ),
+                .product(
+                    name: "ObliviousX",
+                    package: "swift-nio-oblivious-http"
+                ),
                 .product(
                     name: "HomomorphicEncryptionProtobuf",
                     package: "swift-homomorphic-encryption"
@@ -82,6 +94,14 @@ let package = Package(
                 .product(
                     name: "PrivateInformationRetrievalProtobuf",
                     package: "swift-homomorphic-encryption"
+                ),
+                .product(
+                    name: "ObliviousHTTP",
+                    package: "swift-nio-oblivious-http"
+                ),
+                .product(
+                    name: "ObliviousX",
+                    package: "swift-nio-oblivious-http"
                 ),
             ],
             swiftSettings: swiftSettings

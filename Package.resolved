@@ -1,5 +1,5 @@
 {
-  "originHash" : "b71f499cd4249401fad27828eeb15aad88fa3947f2aa76c12e4144e41f3d8017",
+  "originHash" : "f94a2578c0660655a60486aa8c0adeefb596ec9167668d755a4b0159ec4ee85f",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -170,6 +170,15 @@
       "state" : {
         "revision" : "5e9e99ec96c53bc2c18ddd10c1e25a3cd97c55e5",
         "version" : "1.38.0"
+      }
+    },
+    {
+      "identity" : "swift-nio-oblivious-http",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-oblivious-http",
+      "state" : {
+        "revision" : "3f9f07d0f332d54bbc65cf587a9bff1113e97416",
+        "version" : "0.3.1"
       }
     },
     {

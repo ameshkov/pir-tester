@@ -54,6 +54,18 @@ struct Query: ParsableCommand {
     )
     var input: String?
 
+    @Option(
+        name: .long,
+        help: "URL of the OHTTP config resource (enables OHTTP when set)"
+    )
+    var ohttpConfigUrl: String?
+
+    @Option(
+        name: .long,
+        help: "URL of the OHTTP gateway resource"
+    )
+    var ohttpGatewayUrl: String?
+
     @Argument(help: "Keyword to query")
     var keyword: String?
 
@@ -64,6 +76,13 @@ struct Query: ParsableCommand {
         }
         if keyword != nil && input != nil {
             throw ValidationError("Cannot specify both a keyword and an input file")
+        }
+
+        // Validate OHTTP arguments: both or neither
+        if (ohttpConfigUrl == nil) != (ohttpGatewayUrl == nil) {
+            throw ValidationError(
+                "Both --ohttp-config-url and --ohttp-gateway-url must be provided together"
+            )
         }
 
         print("PIR Server URL: \(pirServerUrl)")
@@ -81,8 +100,8 @@ struct Query: ParsableCommand {
             throw ValidationError("Invalid privacy pass URL: \(privacyPassUrl)")
         }
 
-        // Create HTTP client
-        let httpClient = HTTPClient(
+        // Create base HTTP client
+        let baseHttpClient = HTTPClient(
             pirServerURL: pirServerURL,
             privacyPassURL: privacyPassURL
         )
@@ -100,10 +119,14 @@ struct Query: ParsableCommand {
         // Create PIRClient instance once and reuse it for all queries
         // This avoids repeated key rotation when processing multiple keywords
         try runQueries(
-            httpClient: httpClient,
+            httpClient: baseHttpClient,
             userToken: userToken,
             keywords: keywords,
-            usecase: pirUsecase
+            usecase: pirUsecase,
+            ohttpConfigUrl: ohttpConfigUrl,
+            ohttpGatewayUrl: ohttpGatewayUrl,
+            pirServerURL: pirServerURL,
+            privacyPassURL: privacyPassURL
         )
     }
 
@@ -126,13 +149,20 @@ struct Query: ParsableCommand {
     }
 }
 
-/// Run PIR queries for one or more keywords synchronously
-/// Creates a single PIRClient instance and reuses it for all queries
+/// Run PIR queries for one or more keywords synchronously.
+///
+/// Creates a single PIRClient instance and reuses it for all
+/// queries. When OHTTP is enabled, fetches the key config and
+/// wraps the transport.
 func runQueries(
     httpClient: HTTPClient,
     userToken: String,
     keywords: [String],
-    usecase: String
+    usecase: String,
+    ohttpConfigUrl: String? = nil,
+    ohttpGatewayUrl: String? = nil,
+    pirServerURL: URL? = nil,
+    privacyPassURL: URL? = nil
 ) throws {
     // Using thread-safe container
     final class ResultContainer: @unchecked Sendable {
@@ -145,9 +175,32 @@ func runQueries(
 
     Task {
         do {
+            // Optionally wrap with OHTTP transport
+            let transport: any TestClientProtocol
+            if let configUrl = ohttpConfigUrl,
+                let gatewayUrl = ohttpGatewayUrl
+            {
+                guard
+                    let pirURL = pirServerURL,
+                    let ppURL = privacyPassURL
+                else {
+                    throw ValidationError(
+                        "PIR and Privacy Pass URLs are required for OHTTP"
+                    )
+                }
+                transport = try await setupOHTTPTransport(
+                    configUrl: configUrl,
+                    gatewayUrl: gatewayUrl,
+                    pirServerURL: pirURL,
+                    privacyPassURL: ppURL
+                )
+            } else {
+                transport = httpClient
+            }
+
             // Create PIRClient instance once - it will be reused for all queries
             var client = PIRClient<MulPirClient<Bfv<UInt32>>>(
-                connection: httpClient,
+                connection: transport,
                 userToken: userToken
             )
 
@@ -275,6 +328,40 @@ struct HTTPClient: TestClientProtocol, Sendable {
             trailerHeaders: nil
         )
     }
+}
+
+/// Fetch the OHTTP key configuration and create an
+/// `OHTTPClientTransport`.
+func setupOHTTPTransport(
+    configUrl: String,
+    gatewayUrl: String,
+    pirServerURL: URL,
+    privacyPassURL: URL
+) async throws -> OHTTPClientTransport {
+    guard let configURL = URL(string: configUrl) else {
+        throw ValidationError(
+            "Invalid OHTTP config URL: \(configUrl)"
+        )
+    }
+    guard let gatewayURL = URL(string: gatewayUrl) else {
+        throw ValidationError(
+            "Invalid OHTTP gateway URL: \(gatewayUrl)"
+        )
+    }
+
+    print("Fetching OHTTP key configuration from \(configUrl)...")
+    let (configData, _) = try await URLSession.shared.data(
+        from: configURL
+    )
+    let keyConfig = try OHTTPKeyConfiguration.parse(from: configData)
+    print("OHTTP enabled, gateway: \(gatewayUrl)")
+
+    return OHTTPClientTransport(
+        keyConfig: keyConfig,
+        gatewayResourceURL: gatewayURL,
+        pirServerURL: pirServerURL,
+        privacyPassURL: privacyPassURL
+    )
 }
 
 extension HTTPResponse.Status {

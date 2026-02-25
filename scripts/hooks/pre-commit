@@ -59,7 +59,7 @@ fi
 # Warn the programmer about temporary todos and skel FIXMEs, but do not fail the
 # commit, because the commit could be in a temporary branch.
 temp_todos="$(
-    git grep -e 'FIXME' -e 'TODO.*!!' -- ':!scripts/hooks/pre-commit' || :
+    git grep -e 'FIXME' -e 'TODO.*!!' -- ':!scripts/hooks/pre-commit' ':!DEVELOPMENT.md' || :
 )"
 readonly temp_todos
 
@@ -76,4 +76,13 @@ fi
 if [ "$(git diff --cached --name-only -- '*.swift' || :)" != '' ]; then
     make swift-lint
     make test
+fi
+
+# Do not allow committing when `specs/.current` directory exists, recommend the
+# user to rename it to an feature name (recommended formats:
+# `<task-number>-<feature-name>`)
+if [ -d "specs/.current" ]; then
+    echo "Error: Committing when `specs/.current` directory exists is not allowed."
+    echo "Please rename the directory to an feature name (recommended formats: `<task-number>-<feature-name>`)."
+    exit 1
 fi
