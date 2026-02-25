@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/pir-tester/compare/v1.1.0...HEAD
+
+## [v1.1.0] - 2025-02-25
+
 ### Added
 
 - `DEVELOPMENT.md` — comprehensive development guide covering prerequisites,
@@ -32,7 +36,7 @@ adheres to [Semantic Versioning][semver].
   inputs/outputs, behavioral guarantees, and documentation map; removed
   installation and build content.
 
-[unreleased]: https://github.com/ameshkov/pir-tester/compare/v1.0.0...HEAD
+[v1.1.0]: https://github.com/ameshkov/pir-tester/releases/tag/v1.1.0
 
 ## [v1.0.0] - 2025-10-20
 
