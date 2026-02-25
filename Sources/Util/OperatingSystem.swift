@@ -25,7 +25,6 @@ public struct OsType: Hashable, Sendable {
     /// macOS
     public static let macOS: Self = .init(type: .macOS)
 
-    // periphery:ignore
     let type: Internal
 }
 

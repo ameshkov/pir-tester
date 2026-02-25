@@ -80,13 +80,11 @@ public struct Platform: Equatable, Hashable, Sendable {
 public extension Platform {
     /// An example 'User-Agent' for a device with this platform.
     var exampleUserAgent: String {
-        switch osType {
+        switch osType.type {
         case .iOS:
             "com.apple.ciphermld/1.0 iOS/\(osVersion.major).\(osVersion.minor) ..."
         case .macOS:
             "com.apple.ciphermld/1.2 (Macintosh; OS X \(osVersion.major).\(osVersion.minor); XXXXX) ..."
-        default:
-            fatalError("Unsupported OS type: \(osType)")
         }
     }
 }

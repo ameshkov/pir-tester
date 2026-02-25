@@ -225,7 +225,6 @@ private struct RSASSAPSSParams: DERImplicitlyTaggable, Equatable {
     var hashAlgorithm: AlgorithmIdentifier
     var maskGenAlgorithm: AlgorithmIdentifier
     var saltLength: ArraySlice<UInt8>
-    // periphery:ignore
     var trailerField: ArraySlice<UInt8>
 
     init(
@@ -303,6 +302,10 @@ private struct RSASSAPSSParams: DERImplicitlyTaggable, Equatable {
                 explicitlyTaggedWithTagNumber: 2,
                 tagClass: .contextSpecific
             )
+            // trailerField is intentionally not serialized
+            // because DER omits fields equal to their default
+            // value (1).
+            _ = trailerField
         }
     }
 }
