@@ -34,7 +34,7 @@ struct Query: ParsableCommand {
         name: .long,
         help: "URL of the privacy pass service"
     )
-    var privacyPassUrl: String
+    var privacyPassUrl: String?
 
     @Option(
         name: .long,
@@ -44,9 +44,15 @@ struct Query: ParsableCommand {
 
     @Option(
         name: .long,
+        help: "PIR database identifier (x-pir-database header)"
+    )
+    var pirDatabase: String?
+
+    @Option(
+        name: .long,
         help: "User token for authentication"
     )
-    var userToken: String
+    var userToken: String?
 
     @Option(
         name: .long,
@@ -86,9 +92,20 @@ struct Query: ParsableCommand {
         }
 
         print("PIR Server URL: \(pirServerUrl)")
-        print("Privacy Pass URL: \(privacyPassUrl)")
         print("PIR Use Case: \(pirUsecase)")
-        print("User Token: \(userToken)")
+        if let database = pirDatabase {
+            print("PIR Database: \(database)")
+        }
+        if let ppUrl = privacyPassUrl {
+            print("Privacy Pass URL: \(ppUrl)")
+        } else {
+            print("Privacy Pass: disabled")
+        }
+        if let userToken {
+            print("User Token: \(userToken)")
+        } else {
+            print("User Token: not set (Privacy Pass bypassed)")
+        }
         print("")
 
         // Validate URLs
@@ -96,8 +113,14 @@ struct Query: ParsableCommand {
             throw ValidationError("Invalid PIR server URL: \(pirServerUrl)")
         }
 
-        guard let privacyPassURL = URL(string: privacyPassUrl) else {
-            throw ValidationError("Invalid privacy pass URL: \(privacyPassUrl)")
+        let privacyPassURL: URL?
+        if let ppUrl = privacyPassUrl {
+            guard let url = URL(string: ppUrl) else {
+                throw ValidationError("Invalid privacy pass URL: \(ppUrl)")
+            }
+            privacyPassURL = url
+        } else {
+            privacyPassURL = nil
         }
 
         // Create base HTTP client
@@ -123,6 +146,7 @@ struct Query: ParsableCommand {
             userToken: userToken,
             keywords: keywords,
             usecase: pirUsecase,
+            database: pirDatabase,
             ohttpConfigUrl: ohttpConfigUrl,
             ohttpGatewayUrl: ohttpGatewayUrl,
             pirServerURL: pirServerURL,
@@ -156,9 +180,10 @@ struct Query: ParsableCommand {
 /// wraps the transport.
 func runQueries(
     httpClient: HTTPClient,
-    userToken: String,
+    userToken: String?,
     keywords: [String],
     usecase: String,
+    database: String? = nil,
     ohttpConfigUrl: String? = nil,
     ohttpGatewayUrl: String? = nil,
     pirServerURL: URL? = nil,
@@ -175,19 +200,13 @@ func runQueries(
 
     Task {
         do {
-            // Optionally wrap with OHTTP transport
+            // Optionally wrap with OHTTP transport (requires Privacy Pass)
             let transport: any TestClientProtocol
             if let configUrl = ohttpConfigUrl,
-                let gatewayUrl = ohttpGatewayUrl
+                let gatewayUrl = ohttpGatewayUrl,
+                let ppURL = privacyPassURL,
+                let pirURL = pirServerURL
             {
-                guard
-                    let pirURL = pirServerURL,
-                    let ppURL = privacyPassURL
-                else {
-                    throw ValidationError(
-                        "PIR and Privacy Pass URLs are required for OHTTP"
-                    )
-                }
                 transport = try await setupOHTTPTransport(
                     configUrl: configUrl,
                     gatewayUrl: gatewayUrl,
@@ -201,7 +220,8 @@ func runQueries(
             // Create PIRClient instance once - it will be reused for all queries
             var client = PIRClient<MulPirClient<Bfv<UInt32>>>(
                 connection: transport,
-                userToken: userToken
+                userToken: userToken,
+                database: database
             )
 
             print("Running full PIR lookup (fetching tokens, config, keys, and querying)...\n")
@@ -260,7 +280,7 @@ func runQueries(
 /// HTTP client that implements TestClientProtocol for real HTTP requests
 struct HTTPClient: TestClientProtocol, Sendable {
     let pirServerURL: URL
-    let privacyPassURL: URL
+    let privacyPassURL: URL?
 
     var port: Int? {
         return nil
@@ -279,8 +299,8 @@ struct HTTPClient: TestClientProtocol, Sendable {
             || uri.starts(with: "/token-key-for-user-token")
             || uri.starts(with: "/issue")
 
-        if isPrivacyPassPath {
-            baseURL = privacyPassURL
+        if isPrivacyPassPath, let ppURL = privacyPassURL {
+            baseURL = ppURL
         } else {
             baseURL = pirServerURL
         }

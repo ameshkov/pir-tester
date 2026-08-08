@@ -121,6 +121,7 @@ struct PIRClientTests {
         #expect(pirClient.secretKeys.isEmpty)
         #expect(pirClient.tokens.isEmpty)
         #expect(pirClient.userToken == nil)
+        #expect(pirClient.database == nil)
     }
 
     @Test("PIRClient initialization with custom values")
@@ -131,6 +132,7 @@ struct PIRClientTests {
         let configCache: [String: TestPIRClient.Configuration] = [:]
         let secretKeys: [TestPIRClient.EvaluationKeyConfigHash: TestPIRClient.StoredSecretKey] = [:]
         let userToken = "test-token"
+        let database = "test-database"
 
         let pirClient = TestPIRClient(
             connection: stubClient,
@@ -139,7 +141,8 @@ struct PIRClientTests {
             configCache: configCache,
             secretKeys: secretKeys,
             tokens: [],
-            userToken: userToken
+            userToken: userToken,
+            database: database
         )
 
         #expect(pirClient.userID == customUserID)
@@ -148,6 +151,7 @@ struct PIRClientTests {
         #expect(pirClient.secretKeys.isEmpty)
         #expect(pirClient.tokens.isEmpty)
         #expect(pirClient.userToken == userToken)
+        #expect(pirClient.database == database)
     }
 
     // MARK: - Platform Tests
@@ -284,6 +288,22 @@ struct PIRClientTests {
 
         pirClient.userToken = nil
         #expect(pirClient.userToken == nil)
+    }
+
+    // MARK: - Database Tests
+
+    @Test("PIRClient database management")
+    func testDatabaseManagement() {
+        let stubClient = StubTestClient()
+        var pirClient = TestPIRClient(connection: stubClient)
+
+        #expect(pirClient.database == nil)
+
+        pirClient.database = "test-database"
+        #expect(pirClient.database == "test-database")
+
+        pirClient.database = nil
+        #expect(pirClient.database == nil)
     }
 
     // MARK: - Multiple Configuration Tests
