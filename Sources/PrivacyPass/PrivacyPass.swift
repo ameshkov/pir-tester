@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Crypto
+@preconcurrency import Crypto
 import _CryptoExtras
 
 typealias BackingPrivateKey = _RSA.BlindSigning.PrivateKey<SHA384>

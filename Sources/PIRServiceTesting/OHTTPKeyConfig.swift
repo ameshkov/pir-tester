@@ -1,4 +1,4 @@
-import Crypto
+@preconcurrency import Crypto
 import Foundation
 
 /// Parsed OHTTP key configuration from RFC 9458 §3.

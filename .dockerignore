@@ -1,0 +1,10 @@
+.git
+.github
+Tests
+specs
+scripts
+*.md
+Dockerfile
+.dockerignore
+.gitignore
+Package.resolved
