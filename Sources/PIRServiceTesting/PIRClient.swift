@@ -77,8 +77,8 @@ public struct PIRClient<PIRClient: IndexPirClient> {
     public var tokens: [Token]
     /// User token for requesting privacy pass tokens.
     public var userToken: String?
-    /// PIR database identifier (sent as `x-pir-database` header).
-    public var database: String?
+    /// Custom HTTP headers appended to every PIR request.
+    public var customHeaders: HTTPFields
 
     /// Initialize a new testing client.
     /// - Parameters:
@@ -89,7 +89,7 @@ public struct PIRClient<PIRClient: IndexPirClient> {
     ///   - secretKeys: Stored secret keys.
     ///   - tokens: Privacy pass tokens.
     ///   - userToken: User token for requesting privacy pass tokens.
-    ///   - database: PIR database identifier (`x-pir-database` header).
+    ///   - customHeaders: Custom HTTP headers appended to every request.
     public init(
         connection: TestClientProtocol,
         userID: UUID = UUID(),
@@ -98,7 +98,7 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         secretKeys: [EvaluationKeyConfigHash: StoredSecretKey] = [:],
         tokens: [Token] = [],
         userToken: String? = nil,
-        database: String? = nil
+        customHeaders: HTTPFields = HTTPFields()
     ) {
         self.connection = connection
         self.userID = userID
@@ -107,7 +107,7 @@ public struct PIRClient<PIRClient: IndexPirClient> {
         self.secretKeys = secretKeys
         self.tokens = tokens
         self.userToken = userToken
-        self.database = database
+        self.customHeaders = customHeaders
     }
 
     /// Request a value from the service.
@@ -288,9 +288,7 @@ public struct PIRClient<PIRClient: IndexPirClient> {
             .userIdentifier: userID.uuidString,
             .userAgent: platform.exampleUserAgent,
         ]
-        if let database {
-            headers[.xPirDatabase] = database
-        }
+        headers.append(contentsOf: customHeaders)
         if userToken != nil {
             if tokens.isEmpty {
                 // Note: actual device behaviour is more complex than just fetching 4 tokens.

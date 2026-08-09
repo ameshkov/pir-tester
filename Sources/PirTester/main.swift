@@ -1,5 +1,9 @@
+// swift-format-ignore-file
 import ArgumentParser
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import HTTPTypes
 import HomomorphicEncryption
 import NIOCore
@@ -44,9 +48,9 @@ struct Query: ParsableCommand {
 
     @Option(
         name: .long,
-        help: "PIR database identifier (x-pir-database header)"
+        help: "Custom HTTP header to add to PIR requests (format: 'Name: Value'). Can be specified multiple times"
     )
-    var pirDatabase: String?
+    var header: [String] = []
 
     @Option(
         name: .long,
@@ -93,8 +97,8 @@ struct Query: ParsableCommand {
 
         print("PIR Server URL: \(pirServerUrl)")
         print("PIR Use Case: \(pirUsecase)")
-        if let database = pirDatabase {
-            print("PIR Database: \(database)")
+        for header in header {
+            print("Custom Header: \(header)")
         }
         if let ppUrl = privacyPassUrl {
             print("Privacy Pass URL: \(ppUrl)")
@@ -146,7 +150,7 @@ struct Query: ParsableCommand {
             userToken: userToken,
             keywords: keywords,
             usecase: pirUsecase,
-            database: pirDatabase,
+            customHeaders: parseHeaders(header),
             ohttpConfigUrl: ohttpConfigUrl,
             ohttpGatewayUrl: ohttpGatewayUrl,
             pirServerURL: pirServerURL,
@@ -173,6 +177,23 @@ struct Query: ParsableCommand {
     }
 }
 
+/// Parse custom header strings (``Name: Value``) into `HTTPFields`.
+func parseHeaders(_ headers: [String]) -> HTTPFields {
+    var fields = HTTPFields()
+    for header in headers {
+        let parts = header.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else {
+            continue
+        }
+        let name = parts[0].trimmingCharacters(in: .whitespaces)
+        let value = parts[1].trimmingCharacters(in: .whitespaces)
+        if let fieldName = HTTPField.Name(name) {
+            fields.append(HTTPField(name: fieldName, value: value))
+        }
+    }
+    return fields
+}
+
 /// Run PIR queries for one or more keywords synchronously.
 ///
 /// Creates a single PIRClient instance and reuses it for all
@@ -183,7 +204,7 @@ func runQueries(
     userToken: String?,
     keywords: [String],
     usecase: String,
-    database: String? = nil,
+    customHeaders: HTTPFields = HTTPFields(),
     ohttpConfigUrl: String? = nil,
     ohttpGatewayUrl: String? = nil,
     pirServerURL: URL? = nil,
@@ -221,7 +242,7 @@ func runQueries(
             var client = PIRClient<MulPirClient<Bfv<UInt32>>>(
                 connection: transport,
                 userToken: userToken,
-                database: database
+                customHeaders: customHeaders
             )
 
             print("Running full PIR lookup (fetching tokens, config, keys, and querying)...\n")

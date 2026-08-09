@@ -61,7 +61,4 @@ extension TestClientProtocol {
 extension HTTPField.Name {
     // swiftlint:disable:next force_unwrapping
     static var userIdentifier: Self { Self("User-Identifier")! }
-
-    // swiftlint:disable:next force_unwrapping
-    static var xPirDatabase: Self { Self("x-pir-database")! }
 }
