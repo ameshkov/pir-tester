@@ -11,6 +11,16 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Changed
+
+- CI pipeline migrated from macOS runners to a multistage Docker build
+  running on Linux runners. The `Dockerfile` inherits layers from
+  `norionomura/swiftlint:0.63.2_swift-6.2.2` (SwiftLint + compatible GLIBC)
+  and `swift:6.2-jammy` (Swift toolchain), builds Periphery from source in
+  an intermediate stage, and assembles a final image with all required
+  tools (swift, swiftlint, periphery, node, markdownlint, make). Docker
+  layer caching avoids rebuilding the Periphery stage on every run.
+
 [unreleased]: https://github.com/ameshkov/pir-tester/compare/v1.1.0...HEAD
 
 ## [v1.1.0] - 2025-02-25

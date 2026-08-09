@@ -1,5 +1,9 @@
+// swift-format-ignore-file
 import ArgumentParser
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import HTTPTypes
 import HomomorphicEncryption
 import NIOCore

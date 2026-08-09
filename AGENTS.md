@@ -39,6 +39,9 @@ scripts/
 └── hooks/                 # Git hooks (pre-commit runs linters and tests)
 .github/
 └── workflows/             # CI pipeline (lint → test → build → release)
+Dockerfile                # Multistage CI image (Swift + SwiftLint +
+                          #   Periphery + Node/markdownlint)
+.dockerignore             # Excludes non-essential files from Docker context
 ```
 
 ## Build and Test Commands

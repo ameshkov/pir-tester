@@ -1,5 +1,9 @@
-import Crypto
+// swift-format-ignore-file
+@preconcurrency import Crypto
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import NIOCore
 import NIOHTTP1
 import ObliviousHTTP
