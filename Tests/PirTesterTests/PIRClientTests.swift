@@ -121,6 +121,7 @@ struct PIRClientTests {
         #expect(pirClient.secretKeys.isEmpty)
         #expect(pirClient.tokens.isEmpty)
         #expect(pirClient.userToken == nil)
+        #expect(pirClient.customHeaders.isEmpty)
     }
 
     @Test("PIRClient initialization with custom values")
@@ -131,6 +132,8 @@ struct PIRClientTests {
         let configCache: [String: TestPIRClient.Configuration] = [:]
         let secretKeys: [TestPIRClient.EvaluationKeyConfigHash: TestPIRClient.StoredSecretKey] = [:]
         let userToken = "test-token"
+        var customHeaders = HTTPFields()
+        customHeaders.append(HTTPField(name: .userIdentifier, value: "custom-value"))
 
         let pirClient = TestPIRClient(
             connection: stubClient,
@@ -139,7 +142,8 @@ struct PIRClientTests {
             configCache: configCache,
             secretKeys: secretKeys,
             tokens: [],
-            userToken: userToken
+            userToken: userToken,
+            customHeaders: customHeaders
         )
 
         #expect(pirClient.userID == customUserID)
@@ -148,6 +152,7 @@ struct PIRClientTests {
         #expect(pirClient.secretKeys.isEmpty)
         #expect(pirClient.tokens.isEmpty)
         #expect(pirClient.userToken == userToken)
+        #expect(pirClient.customHeaders == customHeaders)
     }
 
     // MARK: - Platform Tests
@@ -284,6 +289,23 @@ struct PIRClientTests {
 
         pirClient.userToken = nil
         #expect(pirClient.userToken == nil)
+    }
+
+    // MARK: - Custom Headers Tests
+
+    @Test("PIRClient custom headers management")
+    func testCustomHeadersManagement() {
+        let stubClient = StubTestClient()
+        var pirClient = TestPIRClient(connection: stubClient)
+
+        #expect(pirClient.customHeaders.isEmpty)
+
+        let header = HTTPField(name: .userIdentifier, value: "test-value")
+        pirClient.customHeaders.append(header)
+        #expect(pirClient.customHeaders.count == 1)
+
+        pirClient.customHeaders = HTTPFields()
+        #expect(pirClient.customHeaders.isEmpty)
     }
 
     // MARK: - Multiple Configuration Tests
