@@ -265,7 +265,7 @@ func runQueries(
                 // Flatten double optional: queryResults.first returns Value??
                 let result = queryResults.first.flatMap { $0 }
 
-                let valueStr = result.flatMap { String(bytes: $0, encoding: .utf8) } ?? "nil"
+                let valueStr = result.flatMap { String(decoding: $0, as: UTF8.self) } ?? "nil"
                 print("✓ PIR query completed successfully, value=\(valueStr)")
 
                 container.results.append((keyword, valueStr))
