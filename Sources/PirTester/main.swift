@@ -265,7 +265,10 @@ func runQueries(
                 // Flatten double optional: queryResults.first returns Value??
                 let result = queryResults.first.flatMap { $0 }
 
-                let valueStr = result.flatMap { String(bytes: $0, encoding: .utf8) } ?? "nil"
+                // We're using non-failing `String(decoding:as:)` so non-UTF8 characters from PIR response
+                // don't fail conversion, resulting in `nil` being printed.
+                // swiftlint:disable:next optional_data_string_conversion
+                let valueStr = result.flatMap { String(decoding: $0, as: UTF8.self) } ?? "nil"
                 print("✓ PIR query completed successfully, value=\(valueStr)")
 
                 container.results.append((keyword, valueStr))
